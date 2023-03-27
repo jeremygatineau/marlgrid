@@ -426,8 +426,7 @@ class PoisonedBerry(WorldObj):
             return False # agents can only pick one berry, maybe try without
 
     def render(self, img):
-        c = COLORS[self.color]
-        point_in_circle(0.5, 0.5, 0.31, c)
+        fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
         return
         
 class Berry(WorldObj):
@@ -449,6 +448,6 @@ class Berry(WorldObj):
             return False # agents can only pick one berry, maybe try without
 
     def render(self, img):
-        c = COLORS[self.color]
-        point_in_circle(0.5, 0.5, 0.31)
+        fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
+
 
