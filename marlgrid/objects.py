@@ -5,7 +5,8 @@ from gym_minigrid.rendering import (
     point_in_rect,
     point_in_circle,
     point_in_triangle,
-    rotate_fn,
+    point_in_line,
+    rotate_fn
 )
 
 # Map of color names to RGB values
