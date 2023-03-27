@@ -16,9 +16,11 @@ class SocialRejection(MultiGridEnv):
             self.n_clutter = int(clutter_density * (self.width-2)*(self.height-2))
         else:
             self.n_clutter = n_clutter
-
+        self.n_good_berries = 1 #len(self.agent)
+        self.n_bad_berries = 1
         self.good_berry_reward = 0.1
         self.poisoned_berry_reward = -0.8
+        self.wall_x_pos = self.width//5
         # self.reset()
 
     def compute_rewards(self):
@@ -42,16 +44,23 @@ class SocialRejection(MultiGridEnv):
 
 
     def _is_in_safe_zone(self, pose):
-        pass
+        return (pose[0] <= getattr(self, 'wall_x_pos', 0))
     def _gen_grid(self, width, height):
         self.grid = MultiGrid((width, height))
         self.grid.wall_rect(0, 0, width, height)
-        if getattr(self, 'randomize_goal', True):
-            self.place_obj(Goal(color="green", reward=1), max_tries=100)
-        else:
-            self.put_obj(Goal(color="green", reward=1), width - 2, height - 2)
+        
         for _ in range(getattr(self, 'n_clutter', 0)):
             self.place_obj(Wall(), max_tries=100)
+            
+        for _ in range(getattr(self, 'n_good_berries', 0)):
+            self.place_obj(Berry(), max_tries=100)
+            
+        for _ in range(getattr(self, 'n_bad_berries', 0)):
+            self.place_obj(PoisonedBerry(), max_tries=100)
+        
+        for iy in range(self.height):
+            if iy not in [self.height//2, self.height//2+1]:
+                self.try_place_obj(Wall(), (getattr(self, 'wall_x_pos', 0), iy))
 
         self.agent_spawn_kwargs = {}
         self.place_agents(**self.agent_spawn_kwargs)

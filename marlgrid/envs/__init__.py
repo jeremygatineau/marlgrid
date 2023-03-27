@@ -2,6 +2,7 @@ from ..base import MultiGridEnv
 
 from .empty import EmptyMultiGrid
 from .doorkey import DoorKeyEnv
+from .berries import SocialRejection
 from .cluttered import ClutteredMultiGrid
 from .goalcycle import ClutteredGoalCycleEnv
 from .viz_test import VisibilityTestEnv
@@ -118,4 +119,13 @@ register_marl_env(
         'clutter_density':0.1,
         'n_bonus_tiles': 3
     }
+)
+
+register_marl_env(
+    "MarlGrid-1AgentBerries15x15-v0",
+    SocialRejection,
+    n_agents=1,
+    grid_size=15,
+    view_size=5,
+    env_kwargs={'n_clutter':30}
 )

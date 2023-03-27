@@ -3,6 +3,7 @@ from enum import IntEnum
 from gym_minigrid.rendering import (
     fill_coords,
     point_in_rect,
+    point_in_circle,
     point_in_triangle,
     rotate_fn,
 )
@@ -405,7 +406,7 @@ class PoisonedBerry(WorldObj):
     states = IntEnum("bad", "neutral")
     time_since_pickup = 0
     bad_color = "red"
-    good_color = "olive"
+    good_color = "green"
     
     def __init__(self, color=good_color):
         super().__init__(color)    
@@ -426,18 +427,13 @@ class PoisonedBerry(WorldObj):
 
     def render(self, img):
         c = COLORS[self.color]
-
-        if self.state == self.states.neutral:
-            fill_coords(img, point_in_circle(0.88, 1.00, 0.00, 1.00), c)
-            return
-        if self.state == self.states.bad:
-            fill_coords(img, point_in_circle(0.88, 0.2, 0.00, 1.00), c)
-            return
+        point_in_circle(0.5, 0.5, 0.31, c)
+        return
         
 class Berry(WorldObj):
     # a berry that flashes "bad" on pickup and that gives negative reward
 
-    good_color = "olive"
+    good_color = "green"
     
     def __init__(self, color=good_color):
         super().__init__(color)    
@@ -454,11 +450,5 @@ class Berry(WorldObj):
 
     def render(self, img):
         c = COLORS[self.color]
-
-        if self.state == self.states.neutral:
-            fill_coords(img, point_in_circle(0.88, 1.00, 0.00, 1.00), c)
-            return
-        if self.state == self.states.bad:
-            fill_coords(img, point_in_circle(0.88, 0.2, 0.00, 1.00), c)
-            return
+        point_in_circle(0.5, 0.5, 0.31)
 
