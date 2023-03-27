@@ -50,13 +50,13 @@ class SocialRejection(MultiGridEnv):
         self.grid.wall_rect(0, 0, width, height)
         
         for _ in range(getattr(self, 'n_clutter', 0)):
-            self.place_obj(Wall(), max_tries=100)
+            self.place_obj(Wall(), reject_fn=self._is_in_safe_zone, max_tries=100)
             
         for _ in range(getattr(self, 'n_good_berries', 0)):
-            self.place_obj(Berry(), max_tries=100)
+            self.place_obj(Berry(), reject_fn=self._is_in_safe_zone, max_tries=100)
             
         for _ in range(getattr(self, 'n_bad_berries', 0)):
-            self.place_obj(PoisonedBerry(), max_tries=100)
+            self.place_obj(PoisonedBerry(), reject_fn=self._is_in_safe_zone, max_tries=100)
         
         for iy in range(self.height):
             if iy not in [self.height//2, self.height//2+1]:
