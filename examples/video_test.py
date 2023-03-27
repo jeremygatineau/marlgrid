@@ -1,6 +1,6 @@
-from marlgrid.utils.video import GridRecorder
-import gym_minigrid
 
+from ..marlgrid.utils.video import GridRecorder
+import gym_minigrid
 env = gym_minigrid.envs.empty.EmptyEnv(size=10)
 env.max_steps = 200
 

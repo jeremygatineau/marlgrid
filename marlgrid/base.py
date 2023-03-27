@@ -8,7 +8,7 @@ from enum import IntEnum
 import math
 import warnings
 
-from .objects import WorldObj, Wall, Goal, Lava, GridAgent, BonusTile, BulkObj, COLORS
+from .objects import Berry, PoisonedBerry, WorldObj, Wall, Goal, Lava, GridAgent, BonusTile, BulkObj, COLORS
 from .agents import GridAgentInterface
 from .rendering import SimpleImageViewer
 from gym_minigrid.rendering import fill_coords, point_in_rect, downsample, highlight_img
@@ -361,7 +361,7 @@ class MultiGridEnv(gym.Env):
         self.seed(seed=seed)
         self.agent_spawn_kwargs = agent_spawn_kwargs
         self.ghost_mode = ghost_mode
-
+        
         self.agents = []
         for agent in agents:
             self.add_agent(agent)
@@ -413,6 +413,7 @@ class MultiGridEnv(gym.Env):
 
         self.step_count = 0
         obs = self.gen_obs()
+        
         return obs
 
     def gen_obs_grid(self, agent):
@@ -499,8 +500,17 @@ class MultiGridEnv(gym.Env):
             import pdb; pdb.set_trace()
 
     def step(self, actions):
-        # Spawn agents if it's time.
+        
         for agent in self.agents:
+            # Turn off berry flashing if it's time.
+            if isinstance(agent.carrying, PoisonedBerry):
+                if agent.carrying.time_since_pickup > 0:
+                    agent.carrying.time_since_pickup -= 1
+                elif agent.carrying.time_since_pickup ==0:
+                    agent.carrying.time_since_pickup = -1
+                    agent.carrying.state = agent.carrying.states.neutral
+                    agent.carrying.color = agent.carrying.good_color
+            # Spawn agents if it's time.
             if not agent.active and not agent.done and self.step_count >= agent.spawn_delay:
                 self.place_obj(agent, **self.agent_spawn_kwargs)
                 agent.activate()
@@ -645,13 +655,21 @@ class MultiGridEnv(gym.Env):
                 else: # if the agent shouldn't be respawned, then deactivate it.
                     agent.deactivate()
 
+        # [ADDED: option for the environment to compute rewards of all agents at once (i.e. wait for everyone to finish)] 
+        if step_rewards_ := self.compute_rewards() is not None: # only if compute_rewards is implemented
+            step_rewards = np.copy(step_rewards_)
+            for ix, agent in enumerate(self.agents):
+                agent.reward(step_rewards[ix])
+
+
         # The episode overall is done if all the agents are done, or if it exceeds the step limit.
         done = (self.step_count >= self.max_steps) or all([agent.done for agent in self.agents])
 
         obs = [self.gen_agent_obs(agent) for agent in self.agents]
 
         return obs, step_rewards, done, {}
-
+    def compute_rewards(self):
+        return None
     def put_obj(self, obj, i, j):
         """
         Put an object at a specific position in the grid. Replace anything that is already there.
@@ -696,7 +714,7 @@ class MultiGridEnv(gym.Env):
 
         # agent_positions = [tuple(agent.pos) if agent.pos is not None else None for agent in self.agents]
         for try_no in range(max_tries):
-            pos = self.np_random.randint(top, bottom)
+            pos = self.np_random.integers(top, bottom)
             if (reject_fn is not None) and reject_fn(pos):
                 continue
             else:

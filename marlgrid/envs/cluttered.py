@@ -23,6 +23,7 @@ class ClutteredMultiGrid(MultiGridEnv):
 
 
     def _gen_grid(self, width, height):
+        # called when reset
         self.grid = MultiGrid((width, height))
         self.grid.wall_rect(0, 0, width, height)
         if getattr(self, 'randomize_goal', True):

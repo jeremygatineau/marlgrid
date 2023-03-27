@@ -30,6 +30,8 @@ COLOR_TO_IDX = dict({v: k for k, v in enumerate(COLORS.keys())})
 
 OBJECT_TYPES = []
 
+
+FLASHING_TIME_POISONED_BERRIES = 2
 class RegisteredObjectType(type):
     def __new__(meta, name, bases, class_dict):
         cls = type.__new__(meta, name, bases, class_dict)
@@ -247,7 +249,7 @@ class Floor(WorldObj):
 
 
 class EmptySpace(WorldObj):
-    def can_verlap(self):
+    def can_overlap(self):
         return True
 
     def str_render(self, dir=0):
@@ -319,6 +321,8 @@ class Ball(WorldObj):
 
     def render(self, img):
         fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
+
+
 
 
 class Door(WorldObj):
@@ -393,3 +397,68 @@ class Box(WorldObj):
 
         # Horizontal slit
         fill_coords(img, point_in_rect(0.16, 0.84, 0.47, 0.53), c)
+
+
+# [ADDED: Berries and poisoned berries]
+class PoisonedBerry(WorldObj):
+    # a berry that flashes "bad" on pickup and that gives negative reward
+    states = IntEnum("bad", "neutral")
+    time_since_pickup = 0
+    bad_color = "red"
+    good_color = "olive"
+    
+    def __init__(self, color=good_color):
+        super().__init__(color)    
+    
+    def can_pickup(self):
+        return True
+    
+    def toggle(self, agent, pos):
+        # Toggled automatically when picked up
+        if agent.carrying is None:
+            agent.carrying = self
+            agent.carrying.color = self.bad_color
+            self.state = self.states.bad # is reset to neutral after K steps in base.step()
+            self.time_since_pickup = FLASHING_TIME_POISONED_BERRIES
+            return True
+        else: 
+            return False # agents can only pick one berry, maybe try without
+
+    def render(self, img):
+        c = COLORS[self.color]
+
+        if self.state == self.states.neutral:
+            fill_coords(img, point_in_circle(0.88, 1.00, 0.00, 1.00), c)
+            return
+        if self.state == self.states.bad:
+            fill_coords(img, point_in_circle(0.88, 0.2, 0.00, 1.00), c)
+            return
+        
+class Berry(WorldObj):
+    # a berry that flashes "bad" on pickup and that gives negative reward
+
+    good_color = "olive"
+    
+    def __init__(self, color=good_color):
+        super().__init__(color)    
+    
+    def can_pickup(self):
+        return True
+    
+    def toggle(self, agent, pos):
+        # Toggled automatically when picked up
+        if agent.carrying is None:
+            return True
+        else: 
+            return False # agents can only pick one berry, maybe try without
+
+    def render(self, img):
+        c = COLORS[self.color]
+
+        if self.state == self.states.neutral:
+            fill_coords(img, point_in_circle(0.88, 1.00, 0.00, 1.00), c)
+            return
+        if self.state == self.states.bad:
+            fill_coords(img, point_in_circle(0.88, 0.2, 0.00, 1.00), c)
+            return
+

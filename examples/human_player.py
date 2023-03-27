@@ -1,5 +1,4 @@
 import numpy as np
-import marlgrid
 
 from marlgrid.rendering import InteractivePlayerWindow
 from marlgrid.agents import GridAgentInterface
