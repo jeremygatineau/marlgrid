@@ -624,7 +624,7 @@ class MultiGridEnv(gym.Env):
 
                 # Done action (not used by default)
                 elif action == agent.actions.done:
-                    pass
+                    agent.done = True
 
                 else:
                     raise ValueError(f"Environment can't handle action {action}.")
@@ -656,11 +656,10 @@ class MultiGridEnv(gym.Env):
                     agent.deactivate()
 
         # [ADDED: option for the environment to compute rewards of all agents at once (i.e. wait for everyone to finish)] 
-        if step_rewards_ := self.compute_rewards() is not None: # only if compute_rewards is implemented
+        if (step_rewards_ := self.compute_rewards()) is not None: # only if compute_rewards is implemented
             step_rewards = np.copy(step_rewards_)
             for ix, agent in enumerate(self.agents):
                 agent.reward(step_rewards[ix])
-
 
         # The episode overall is done if all the agents are done, or if it exceeds the step limit.
         done = (self.step_count >= self.max_steps) or all([agent.done for agent in self.agents])

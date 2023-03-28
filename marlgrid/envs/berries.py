@@ -25,23 +25,25 @@ class SocialRejection(MultiGridEnv):
 
     def compute_rewards(self):
         
-        if self.step_count > self.max_steps:
+        if self.step_count >= self.max_steps:
             safe_ixs = []
             total_reward = 0
-            step_rewards = []
+            step_rewards = [0]*len(self.agents)
             for ix, agent in enumerate(self.agents):
                 if self._is_in_safe_zone(agent.pos):
                     safe_ixs.append(ix)
-                    step_rewards.append(0)
                     # every agent in the safe zone gets the aggregated sum of fruit rewards
                     if isinstance(agent.carrying, Berry):
                         total_reward += self.good_berry_reward
                     elif isinstance(agent.carrying, PoisonedBerry):
                         total_reward += self.poisoned_berry_reward
                 else :
-                    step_rewards.append(-1) # get penalty for not returning to the safe zone in time
+                    step_rewards[ix] = -1 # get penalty for not returning to the safe zone in time
 
-
+            for i in safe_ixs:
+                step_rewards[i] = total_reward/len(safe_ixs) # divide among survivors, might not be optimal
+            return step_rewards
+        return None
 
     def _is_in_safe_zone(self, pose):
         return (pose[0] <= getattr(self, 'wall_x_pos', 0))
