@@ -13,7 +13,7 @@ from .agents import GridAgentInterface
 from .rendering import SimpleImageViewer
 from gym_minigrid.rendering import fill_coords, point_in_rect, downsample, highlight_img
 
-TILE_PIXELS = 32
+TILE_PIXELS = 8
 
 
 class ObjectRegistry:
@@ -340,6 +340,7 @@ class MultiGridEnv(gym.Env):
         height=None,
         max_steps=100,
         reward_decay=True,
+        FLASHING_TIME_POISONED_BERRIES = 5,
         seed=1337,
         respawn=False,
         ghost_mode=True,
@@ -353,7 +354,7 @@ class MultiGridEnv(gym.Env):
         self.respawn = respawn
 
         self.window = None
-
+        self.FLASHING_TIME_POISONED_BERRIES = FLASHING_TIME_POISONED_BERRIES
         self.width = width
         self.height = height
         self.max_steps = max_steps
@@ -502,14 +503,6 @@ class MultiGridEnv(gym.Env):
     def step(self, actions):
         
         for agent in self.agents:
-            # Turn off berry flashing if it's time.
-            if isinstance(agent.carrying, PoisonedBerry):
-                if agent.carrying.time_since_pickup > 0:
-                    agent.carrying.time_since_pickup -= 1
-                elif agent.carrying.time_since_pickup ==0:
-                    agent.carrying.time_since_pickup = -1
-                    agent.carrying.state = agent.carrying.states.neutral
-                    agent.carrying.color = agent.carrying.good_color
             # Spawn agents if it's time.
             if not agent.active and not agent.done and self.step_count >= agent.spawn_delay:
                 self.place_obj(agent, **self.agent_spawn_kwargs)
@@ -603,6 +596,9 @@ class MultiGridEnv(gym.Env):
                             agent.carrying = fwd_cell
                             agent.carrying.cur_pos = np.array([-1, -1])
                             self.grid.set(*fwd_pos, None)
+                            if isinstance(agent.carrying, PoisonedBerry):
+                                agent.color=agent.carrying.bad_color
+                                agent.carrying.time_since_pickup = self.FLASHING_TIME_POISONED_BERRIES
                     else:
                         pass
 
@@ -628,7 +624,13 @@ class MultiGridEnv(gym.Env):
 
                 else:
                     raise ValueError(f"Environment can't handle action {action}.")
-
+                  # Turn off berry flashing if it's time.
+                if isinstance(agent.carrying, PoisonedBerry):
+                    if agent.carrying.time_since_pickup > 0:
+                        agent.carrying.time_since_pickup -= 1
+                    elif agent.carrying.time_since_pickup ==0:
+                        agent.carrying.time_since_pickup = -1
+                        agent.color = agent.carrying.good_color
                 agent.on_step(fwd_cell if agent_moved else None)
 
         

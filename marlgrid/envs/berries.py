@@ -6,7 +6,16 @@ class SocialRejection(MultiGridEnv):
     mission = "Forage the berries before dark, don't let the poison in the refuge"
     metadata = {}
 
-    def __init__(self, *args, n_clutter=None, clutter_density=None, **kwargs):
+    def __init__(
+            self,
+            *args, 
+            n_clutter=None, 
+            clutter_density=None, 
+            n_good_berries=1, 
+            n_bad_berries=1,
+            good_berry_reward=0.1,
+            poisoned_berry_reward=-0.8,
+            **kwargs):
         if (n_clutter is None) == (clutter_density is None):
             raise ValueError("Must provide n_clutter xor clutter_density in environment config.")
 
@@ -16,10 +25,10 @@ class SocialRejection(MultiGridEnv):
             self.n_clutter = int(clutter_density * (self.width-2)*(self.height-2))
         else:
             self.n_clutter = n_clutter
-        self.n_good_berries = 1 #len(self.agent)
-        self.n_bad_berries = 1
-        self.good_berry_reward = 0.1
-        self.poisoned_berry_reward = -0.8
+        self.n_good_berries = n_good_berries
+        self.n_bad_berries = n_bad_berries
+        self.good_berry_reward = good_berry_reward
+        self.poisoned_berry_reward = poisoned_berry_reward
         self.wall_x_pos = self.width//5
         # self.reset()
 

@@ -81,7 +81,8 @@ class WorldObj(metaclass=RegisteredObjectType):
 
     def can_pickup(self):
         return False
-
+    def on_pickup(self, *kargs):
+        return True
     def can_contain(self):
         return False
 
@@ -404,28 +405,15 @@ class Box(WorldObj):
 # [ADDED: Berries and poisoned berries]
 class PoisonedBerry(WorldObj):
     # a berry that flashes "bad" on pickup and that gives negative reward
-    states = IntEnum("bad", "neutral")
     time_since_pickup = 0
-    bad_color = "red"
-    good_color = "green"
+    bad_color = "white"
+    good_color = "red"
     
-    def __init__(self, color=good_color):
+    def __init__(self, color="green"):
         super().__init__(color)    
     
     def can_pickup(self):
         return True
-    
-    def toggle(self, agent, pos):
-        # Toggled automatically when picked up
-        if agent.carrying is None:
-            agent.carrying = self
-            agent.carrying.color = self.bad_color
-            self.state = self.states.bad # is reset to neutral after K steps in base.step()
-            self.time_since_pickup = FLASHING_TIME_POISONED_BERRIES
-            return True
-        else: 
-            return False # agents can only pick one berry, maybe try without
-
     def render(self, img):
         fill_coords(img, point_in_circle(0.5, 0.5, 0.31), COLORS[self.color])
         return
