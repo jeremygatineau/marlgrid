@@ -10,24 +10,20 @@ class SocialRejection(MultiGridEnv):
             self,
             *args, 
             config,
-            n_good_berries=1, 
-            n_bad_berries=1,
-            good_berry_reward=0.1,
-            poisoned_berry_reward=-0.8,
             **kwargs):
         if (config.n_clutter is None) == (config.clutter_density is None):
             raise ValueError("Must provide n_clutter xor clutter_density in environment config.")
 
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, width=config.width, height=config.height, reward_decay=config.reward_decay, FLASHING_TIME_POISONED_BERRIES=config.FLASHING_TIME_POISONED_BERRIES, max_steps=config.max_steps, **kwargs)
 
         if config.clutter_density is not None:
             self.n_clutter = int(config.clutter_density * (self.width-2)*(self.height-2))
         else:
             self.n_clutter = config.n_clutter
-        self.n_good_berries = n_good_berries
-        self.n_bad_berries = n_bad_berries
-        self.good_berry_reward = good_berry_reward
-        self.poisoned_berry_reward = poisoned_berry_reward
+        self.n_good_berries = config.n_good_berries
+        self.n_bad_berries = config.n_bad_berries
+        self.good_berry_reward = config.good_berry_reward
+        self.poisoned_berry_reward = config.poisoned_berry_reward
         self.wall_x_pos = self.width//5
         # self.reset()
 
