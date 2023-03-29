@@ -27,7 +27,6 @@ class SocialRejection(MultiGridEnv):
         self.good_berry_reward = config.good_berry_reward
         self.poisoned_berry_reward = config.poisoned_berry_reward
         self.wall_x_pos = self.width//5
-        self.communication_channel = WindowdedTextCommChanel(config.max_msg_len)
         # self.reset()
 
     def compute_rewards(self):
