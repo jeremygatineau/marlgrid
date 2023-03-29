@@ -2,6 +2,18 @@ from ..base import MultiGridEnv, MultiGrid
 from ..objects import *
 
 
+class WindowdedTextCommChanel():
+    def __init__(self, max_msg_len) -> None:
+        self.history = []
+        self.current_text = ''
+        self.max_msg_len = max_msg_len
+
+    def communicate(self, messages):
+        self.history.append(self.current_text)
+        self.current_text = ''.join([message[:self.max_msg_len] + '\n' for message in messages])
+        return self.current_text
+    
+
 class SocialRejection(MultiGridEnv):
     mission = "Forage the berries before dark, don't let the poison in the refuge"
     metadata = {}
@@ -25,6 +37,7 @@ class SocialRejection(MultiGridEnv):
         self.good_berry_reward = config.good_berry_reward
         self.poisoned_berry_reward = config.poisoned_berry_reward
         self.wall_x_pos = self.width//5
+        self.communication_channel = WindowdedTextCommChanel(config.max_msg_len)
         # self.reset()
 
     def compute_rewards(self):
