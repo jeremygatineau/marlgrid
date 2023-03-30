@@ -3,7 +3,6 @@ from ..objects import *
 
 
 
-
 class SocialRejection(MultiGridEnv):
     mission = "Forage the berries before dark, don't let the poison in the refuge"
     metadata = {}
@@ -22,13 +21,21 @@ class SocialRejection(MultiGridEnv):
             self.n_clutter = int(config.clutter_density * (self.width-2)*(self.height-2))
         else:
             self.n_clutter = config.n_clutter
+        if config.agent_color_space is not None:
+            cs = self._get_colors(len(self.agents))
+            for ix in range(len(self.agents)):
+                self.agents[ix].color = cs[ix]
         self.n_good_berries = config.n_good_berries
         self.n_bad_berries = config.n_bad_berries
         self.good_berry_reward = config.good_berry_reward
         self.poisoned_berry_reward = config.poisoned_berry_reward
         self.wall_x_pos = self.width//5
         # self.reset()
+    def _get_colors(self, n):
+        colors = ["red", "pink", "blue", "cyan", "purple", "yellow", "olive", "orange"]
 
+        assert n<=len(colors), f"cannot use color_space if n_agents>{len(colors)}, not enough contrasting colors"
+        return colors
     def compute_rewards(self):
         
         if self.step_count >= self.max_steps:
