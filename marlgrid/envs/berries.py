@@ -1,6 +1,8 @@
 from ..base import MultiGridEnv, MultiGrid
 from ..objects import *
 
+import gym
+
 
 
 class SocialRejection(MultiGridEnv):
@@ -79,3 +81,45 @@ class SocialRejection(MultiGridEnv):
 
         self.agent_spawn_kwargs = {}
         self.place_agents(**self.agent_spawn_kwargs)
+
+class WindowdedTextCommChannel():
+    def __init__(self, max_msg_len, save_file) -> None:
+        self.history = []
+        self.current_text = ''
+        self.max_msg_len = max_msg_len
+        self.f = None
+        if save_file is not None:
+            self.f = open(save_file, "a+")
+    @property
+    def action_space(self):
+        pass
+    def action_space(self):
+        pass
+    def communicate(self, messages):
+        self.history.append(self.current_text)
+        self.current_text = ''.join([message[:self.max_msg_len] + '\n' for message in messages])
+        if self.f is not None:
+            self.f.write(self.current_text)
+        return self.current_text
+
+class CommunicationWrapper:
+    def __init__(
+            self, _env, config):
+        self._env = _env
+        
+        self.comm_channel = WindowdedTextCommChannel(config.max_msg_len, config.text_save_file)
+    @property
+    def action_space(self):
+        return gym.spaces.Dict({"actions": self._env.action_space, "messages": self.comm_channel.action_space})
+    def action_space(self):
+        return gym.spaces.Dict({"env": self._env.observation_space, "messages": self.comm_channel.observation_space})
+    def __getattr__(self, name):
+        return getattr(self._env, name)
+    
+    def step(self, action):
+        messages = action["Comm"]
+        actions = action["actions"]
+
+
+    def reset(self):
+        return self._env.reset()

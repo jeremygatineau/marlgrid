@@ -330,21 +330,6 @@ class MultiGrid:
 
         return img
 
-class WindowdedTextCommChannel():
-    def __init__(self, max_msg_len, save_file) -> None:
-        self.history = []
-        self.current_text = ''
-        self.max_msg_len = max_msg_len
-        self.f = None
-        if save_file is not None:
-            self.f = open(save_file, "a+")
-    def communicate(self, messages):
-        self.history.append(self.current_text)
-        self.current_text = ''.join([message[:self.max_msg_len] + '\n' for message in messages])
-        if self.f is not None:
-            self.f.write(self.current_text)
-        return self.current_text
-
 class MultiGridEnv(gym.Env):
     def __init__(
         self,
@@ -358,8 +343,6 @@ class MultiGridEnv(gym.Env):
         seed=1337,
         respawn=False,
         ghost_mode=True,
-        max_msg_len=15, 
-        text_save_file=None,
         agent_spawn_kwargs = {}
     ):
 
@@ -368,7 +351,6 @@ class MultiGridEnv(gym.Env):
             width, height = grid_size, grid_size
 
         self.respawn = respawn
-        self.commChannel = WindowdedTextCommChannel(max_msg_len, text_save_file)
         self.window = None
         self.FLASHING_TIME_POISONED_BERRIES = FLASHING_TIME_POISONED_BERRIES
         self.width = width
