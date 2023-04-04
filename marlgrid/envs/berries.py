@@ -2,8 +2,8 @@ from ..base import MultiGridEnv, MultiGrid
 from ..objects import *
 
 import gym
-
-
+from textworld.gym.spaces.text_spaces import Char
+import string
 
 class SocialRejection(MultiGridEnv):
     mission = "Forage the berries before dark, don't let the poison in the refuge"
@@ -83,35 +83,44 @@ class SocialRejection(MultiGridEnv):
         self.place_agents(**self.agent_spawn_kwargs)
 
 class WindowdedTextCommChannel():
-    def __init__(self, max_msg_len, save_file) -> None:
+    def __init__(self, config) -> None:
         self.history = []
         self.current_text = ''
-        self.max_msg_len = max_msg_len
+        self.max_msg_len = config.max_msg_len
+        self.max_len = config.n_agents * self.max_msg_len
         self.f = None
-        if save_file is not None:
-            self.f = open(save_file, "a+")
+        self.vocab_size = config.vocab_size
+        self.chars = string.ascii_lowercase[:self.vocab_size]
     @property
     def action_space(self):
-        pass
-    def action_space(self):
-        pass
-    def communicate(self, messages):
+        return gym.spaces.Tuple(
+            [Char(max_length=self.max_msg_len, vocab=self.chars) for _ in range(self.config.n_agents)]
+            )
+    @property
+    def observation_space(self):
+        return gym.spaces.Tuple(
+            [Char(max_length=self.max_len, vocab=self.chars) for _ in range(self.config.n_agents)]
+            )
+    def step(self, messages):
         self.history.append(self.current_text)
         self.current_text = ''.join([message[:self.max_msg_len] + '\n' for message in messages])
-        if self.f is not None:
-            self.f.write(self.current_text)
-        return self.current_text
-
+        return [self.current_text]*self.config.n_agents
+    def reset(self):
+        self.history = []
+        self.current_text = ''
+        return [self.current_text]*self.config.n_agents
 class CommunicationWrapper:
     def __init__(
             self, _env, config):
         self._env = _env
-        
-        self.comm_channel = WindowdedTextCommChannel(config.max_msg_len, config.text_save_file)
+
+        self.comm_channel = WindowdedTextCommChannel(config)
     @property
     def action_space(self):
         return gym.spaces.Dict({"actions": self._env.action_space, "messages": self.comm_channel.action_space})
     def action_space(self):
+        dic = {"messages": self.comm_channel.observation_space}
+        dic.update(self._env.)
         return gym.spaces.Dict({"env": self._env.observation_space, "messages": self.comm_channel.observation_space})
     def __getattr__(self, name):
         return getattr(self._env, name)
@@ -120,6 +129,11 @@ class CommunicationWrapper:
         messages = action["Comm"]
         actions = action["actions"]
 
+        eps = self._env.step(actions)
+        msgs = self.comm_channel.step(messages)
 
     def reset(self):
-        return self._env.reset()
+        obs = self._env.reset()
+        m = self.comm_channel.reset()
+        obs
+        return {"env": obs, "messages": m}
