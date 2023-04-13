@@ -91,6 +91,7 @@ class WindowdedTextCommChannel():
         self.f = None
         self.vocab_size = config.vocab_size
         self.chars = string.ascii_lowercase[:self.vocab_size]
+        self.n_agents = config.n_agents
     @property
     def action_space(self):
         return gym.spaces.Tuple(
@@ -104,24 +105,25 @@ class WindowdedTextCommChannel():
     def step(self, messages):
         self.history.append(self.current_text)
         self.current_text = ''.join([message[:self.max_msg_len] + '\n' for message in messages])
-        return [self.current_text]*self.config.n_agents
+        return [self.current_text]*self.n_agents
     def reset(self):
         self.history = []
         self.current_text = ''
-        return [self.current_text]*self.config.n_agents
+        return [self.current_text]*self.n_agents
 class CommunicationWrapper:
     def __init__(
             self, _env, config):
         self._env = _env
-
+        self.config = config
         self.comm_channel = WindowdedTextCommChannel(config)
     @property
     def action_space(self):
         return gym.spaces.Dict({"actions": self._env.action_space, "messages": self.comm_channel.action_space})
-    def action_space(self):
-        dic = {"messages": self.comm_channel.observation_space}
-        dic.update(self._env.)
-        return gym.spaces.Dict({"env": self._env.observation_space, "messages": self.comm_channel.observation_space})
+    @property
+    def observation_space(self):
+        dic = self._env.observation_space
+        dic.update({"messages": self.comm_channel.observation_space})
+        return dic
     def __getattr__(self, name):
         return getattr(self._env, name)
     
@@ -129,9 +131,11 @@ class CommunicationWrapper:
         messages = action["Comm"]
         actions = action["actions"]
 
-        eps = self._env.step(actions)
+        obs, rs, done, info = self._env.step(actions)
         msgs = self.comm_channel.step(messages)
-
+        for i in range(len(obs)):
+            obs.update({"messages": msgs[i]})
+        return obs, rs, done, info
     def reset(self):
         obs = self._env.reset()
         m = self.comm_channel.reset()
