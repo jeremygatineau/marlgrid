@@ -17,7 +17,12 @@ class SocialRejection(MultiGridEnv):
         if (config.n_clutter is None) == (config.clutter_density is None):
             raise ValueError("Must provide n_clutter xor clutter_density in environment config.")
 
-        super().__init__(*args, width=config.width, height=config.height, reward_decay=config.reward_decay, FLASHING_TIME_POISONED_BERRIES=config.FLASHING_TIME_POISONED_BERRIES, max_steps=config.max_steps, **kwargs)
+        super().__init__(*args, \
+                         width=config.width, \
+                         height=config.height,\
+                         reward_decay=config.reward_decay,\
+                         FLASHING_TIME_POISONED_BERRIES=config.FLASHING_TIME_POISONED_BERRIES,\
+                         max_steps=config.max_steps, **kwargs)
 
         if config.clutter_density is not None:
             self.n_clutter = int(config.clutter_density * (self.width-2)*(self.height-2))
@@ -128,7 +133,7 @@ class CommunicationWrapper:
         return getattr(self._env, name)
     
     def step(self, action):
-        messages = action["Comm"]
+        messages = action["messages"]
         actions = action["actions"]
 
         obs, rs, done, info = self._env.step(actions)

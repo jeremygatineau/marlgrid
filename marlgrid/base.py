@@ -412,7 +412,6 @@ class MultiGridEnv(gym.Env):
 
         self.step_count = 0
         obs = self.gen_obs()
-        
         return obs
 
     def gen_obs_grid(self, agent):
